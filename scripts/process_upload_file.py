@@ -2,7 +2,8 @@
 
 """process_upload_file.py: Converts images."""
 # Requires:
-# sudo apt-get install libogg-dev libvorbis-dev lame libfaad2
+# sudo apt-get install libogg-dev libvorbis-dev lame libfaad2 libjpeg-dev zlib1g-dev libtiff4  libfreetype6-dev 
+# sudo apt-get install liblcms liblcms-dev liblcms-utils libwebp-dev openjpeg-tools tk
 # cd ~;wget https://bootstrap.pypa.io/get-pip.py; sudo python get-pip.py
 # pip install pillow  # For Image processing
 # sudo apt-get install ubuntu-restricted-extras 
@@ -47,63 +48,66 @@ def main(argv):
 
 def convert_image(filename):
     try:
-        file1  = Image.open(filename)
-        file2  = Image.open(filename)
+        print "made it here"
+        filename_base = os.path.basename(filename)
+#        file1  = Image.open(filename)
+#        file2  = Image.open(filename)
         filename_1 = next(alt_name
-                          for alt_name in alternative_names(OUTPUT_IMG_FOLDER_RESIZED + os.path.splitext(filename)[0] + RESIZED_IMG_FILENAME_SUFFIX + ".jpg")
+                          for alt_name in alternative_names(OUTPUT_IMG_FOLDER_RESIZED + os.path.splitext(filename_base)[0] + RESIZED_IMG_FILENAME_SUFFIX + ".jpg")
                           if not os.path.exists(alt_name))
         filename_2 = next(alt_name
-                          for alt_name in alternative_names(OUTPUT_IMG_FOLDER_THUMBNAIL + os.path.splitext(filename)[0] + THUMBNAIL_IMG_FILENAME_SUFFIX + ".jpg")
+                          for alt_name in alternative_names(OUTPUT_IMG_FOLDER_THUMBNAIL + os.path.splitext(filename_base)[0] + THUMBNAIL_IMG_FILENAME_SUFFIX + ".jpg")
                           if not os.path.exists(alt_name))
         
-        print "Converting File: %s with size:(%d x %d)"%(filename, file1.size[0], file1.size[1])
+#        print "Converting File: %s with size:(%d x %d)"%(filename, file1.size[0], file1.size[1])
         print "Exporting Resized: %s" % filename_1
+        
+        cmdline = [
+            'convert',
+            filename,
+            '-thumbnail',
+            '368x275^',
+            '-gravity',
+            'center',
+            '-extent',
+            '368x275',
+            filename_1
+        ]
+
         print "Exporting Thumbnail: %s" % filename_2
+        subprocess.call(cmdline)
+        cmdline = [
+            'convert',
+            filename,
+            '-thumbnail',
+            '208x172^',
+            '-gravity',
+            'center',
+            '-extent',
+            '208x172',
+            filename_2
+        ]
+        subprocess.call(cmdline)
 
-        w = file1.size[0]
-        h = file1.size[1]
-
-        # If width is larger than 368px and height is larger than 275px
-        if (w > 368 and h > 275):
-            # If width is larger than height            
-            if w > h:
-                # file1 = Resize height to 275px and crop width to 368px
-                file1.thumbnail((w, 275), Image.ANTIALIAS) 
-                file1.crop((0,0,368,275))
-                
-                # file2 = Resize height to 172px and crop width to 208px
-                file2.thumbnail((w, 172), Image.ANTIALIAS)
-                file2.crop((0,0,208,172))
-                
-            else:
-                # file1 = Resize width to 368px and crop height to 275px
-                file1.thumbnail((368, h), Image.ANTIALIAS)
-                file1.crop((0,0,368,275))
-            
-                # file2 = Resize height to 208px and crop width to 172px
-                file2.thumbnail((w, 208), Image.ANTIALIAS)
-                file2.crop((0,0,172,208))
-            
-                file2.save(filename_2, "JPEG")
-                file1.save(filename_1, "JPEG")
     except Exception as e:
         raise e
 
 
 def convert_audio(filename):
-    
+    filename_base = os.path.basename(filename)
     valid_formats = [".wav", ".aif", ".aiff", ".au", ".mp3",".ogg",".flac",".m4a",".wma",".3gp",".aac"]
     ext = os.path.splitext(filename)[1].lower()
+    
 
     mp3_filename = next(alt_name
-                        for alt_name in alternative_names(MP3_FOLDER + os.path.splitext(filename)[0] + ".mp3")
+                        for alt_name in alternative_names(MP3_FOLDER + os.path.splitext(filename_base)[0] + ".mp3")
                         if not os.path.exists(alt_name))
     ogg_filename = next(alt_name
-                        for alt_name in alternative_names(OGG_FOLDER + os.path.splitext(filename)[0] + ".ogg")
+                        for alt_name in alternative_names(OGG_FOLDER + os.path.splitext(filename_base)[0] + ".ogg")
                         if not os.path.exists(alt_name))
 
     if any(ext in s for s in valid_formats):
-        print "CONVERTING TO MP3:"
+        print "CONVERTING TO MP3: %s becomes %s"%(filename, mp3_filename)
         cmdline = [
             'avconv',
             '-y',

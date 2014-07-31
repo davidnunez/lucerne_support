@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #dir=/home/akito/Desktop/Audio
-#dir=/var/www-lucerne/LocativeSoundShare/client/upload/snd
-dir=/home/dnunez/upload
+dir=/var/www-lucerne/LocativeSoundShare/client/upload
+#dir=/home/dnunez/upload
 #inotifywait -mrq -e CREATE --format %w%f /tmp/mytest/ | while read FILE; do chmod g=u "$FILE"; done
 #inotifywait -mrq -e CREATE --format %w%f /tmp/mytest/ | while IFS= read -r FILE; do chmod g=u "$FILE"; done
 

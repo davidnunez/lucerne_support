@@ -14,17 +14,18 @@ from PIL import Image
 __author__ = "David Nunez"
 __email__  = "dnunez@media.mit.edu"
 
-OUTPUT_IMG_FOLDER_ORIGINAL = "/home/dnunez/upload/img/feed/"
-OUTPUT_IMG_FOLDER_RESIZED = "/home/dnunez/upload/img/feed/"
-OUTPUT_IMG_FOLDER_THUMBNAIL = "/home/dnunez/upload/img/feed/"
+OUTPUT_IMG_FOLDER_ORIGINAL = "/var/www-lucerne/LocativeSoundShare/client/upload/img/feed/"
+OUTPUT_IMG_FOLDER_RESIZED = "/var/www-lucerne/LocativeSoundShare/client/upload/img/feed/"
+OUTPUT_IMG_FOLDER_THUMBNAIL = "/var/www-lucerne/LocativeSoundShare/client/upload/img/feed/"
 
-ORIGINAL_IMG_FILENAME_SUFFIX = ""
-RESIZED_IMG_FILENAME_SUFFIX = "_resized"
-THUMBNAIL_IMG_FILENAME_SUFFIX = "_thumbnail"
+ORIGINAL_IMG_FILENAME_PREFIX = ""
+RESIZED_IMG_FILENAME_PREFIX = "resized_"
+THUMBNAIL_IMG_FILENAME_PREFIX = "thumbnail_"
 
-MP3_FOLDER = "/home/dnunez/upload/snd/mp3/"
-OGG_FOLDER = "/home/dnunez/upload/snd/ogg/"
+MP3_FOLDER = "/var/www-lucerne/LocativeSoundShare/client/upload/snd/mp3/"
+OGG_FOLDER = "/var/www-lucerne/LocativeSoundShare/client/upload/snd/ogg/"
 
+valid_audio_formats = [".wav", ".aif", ".aiff", ".au", ".mp3",".ogg",".flac",".m4a",".wma",".3gp",".aac"]
 
 def alternative_names(filename):
     yield filename
@@ -36,30 +37,28 @@ def alternative_names(filename):
 def main(argv):
     for filename in argv:
         try:
-            convert_image(filename)
-        except Exception as e:
-            print "'%s' could not be processed as an image: %s" %(filename, e) 
-            try:
+            ext = os.path.splitext(filename)[1].lower()
+            if any(ext in s for s in valid_audio_formats):
                 convert_audio(filename)
-            except Exception as a:
-                print "'%s' could not be processed as audio: %s" %(filename, a) 
-                
-
+            else:
+                convert_image(filename)
+        except Exception as e:
+            print "'%s' could not be processed: %s" %(filename, e)
 
 def convert_image(filename):
     try:
         print "made it here"
         filename_base = os.path.basename(filename)
-#        file1  = Image.open(filename)
-#        file2  = Image.open(filename)
+    
+    
         filename_1 = next(alt_name
-                          for alt_name in alternative_names(OUTPUT_IMG_FOLDER_RESIZED + os.path.splitext(filename_base)[0] + RESIZED_IMG_FILENAME_SUFFIX + ".jpg")
+                          for alt_name in alternative_names(OUTPUT_IMG_FOLDER_RESIZED + RESIZED_IMG_FILENAME_PREFIX + os.path.splitext(filename_base)[0] + ".jpg")
                           if not os.path.exists(alt_name))
         filename_2 = next(alt_name
-                          for alt_name in alternative_names(OUTPUT_IMG_FOLDER_THUMBNAIL + os.path.splitext(filename_base)[0] + THUMBNAIL_IMG_FILENAME_SUFFIX + ".jpg")
+                          for alt_name in alternative_names(OUTPUT_IMG_FOLDER_THUMBNAIL + THUMBNAIL_IMG_FILENAME_PREFIX + os.path.splitext(filename_base)[0] + ".jpg")
                           if not os.path.exists(alt_name))
-        
-#        print "Converting File: %s with size:(%d x %d)"%(filename, file1.size[0], file1.size[1])
+                                                        
+        #        print "Converting File: %s with size:(%d x %d)"%(filename, file1.size[0], file1.size[1])
         print "Exporting Resized: %s" % filename_1
         
         cmdline = [
@@ -95,9 +94,8 @@ def convert_image(filename):
 
 def convert_audio(filename):
     filename_base = os.path.basename(filename)
-    valid_formats = [".wav", ".aif", ".aiff", ".au", ".mp3",".ogg",".flac",".m4a",".wma",".3gp",".aac"]
-    ext = os.path.splitext(filename)[1].lower()
     
+    ext = os.path.splitext(filename)[1].lower()
 
     mp3_filename = next(alt_name
                         for alt_name in alternative_names(MP3_FOLDER + os.path.splitext(filename_base)[0] + ".mp3")
@@ -106,7 +104,7 @@ def convert_audio(filename):
                         for alt_name in alternative_names(OGG_FOLDER + os.path.splitext(filename_base)[0] + ".ogg")
                         if not os.path.exists(alt_name))
 
-    if any(ext in s for s in valid_formats):
+    if any(ext in s for s in valid_audio_formats):
         print "CONVERTING TO MP3: %s becomes %s"%(filename, mp3_filename)
         cmdline = [
             'avconv',
